@@ -14,6 +14,8 @@ Termination is then verified with the use of implicit rankings and invariants (S
 The complete docs for how to use the Python library are available at
 <https://neta-elad.github.io/implicit-rankings-timers/>,
 but can also be built locally (see below).
+The extended version of the paper is available on 
+[arXiv](https://arxiv.org/abs/2601.13325).
 
 ## Artifact Note
 Since the submission of the paper we added 3 examples to the benchmark 

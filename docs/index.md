@@ -7,6 +7,12 @@ by Raz Lotan, Neta Elad, Oded Padon and Sharon Shoham.
 It allows for easy, type-safe definitions of transition systems
 and temporal properties,
 and constructing proofs using implicit rankings and timers.
+The extended version of the paper is available on 
+[arXiv](https://arxiv.org/abs/2601.13325).
+
+## Installation
+See installation instructions in the 
+[GitHub repo](https://github.com/neta-elad/implicit-rankings-timers).
 
 ## Getting Started
 All necessary symbols are re-exported from the `prelude` 
