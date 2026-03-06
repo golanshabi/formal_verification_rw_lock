@@ -172,3 +172,41 @@ class RWLockSystem(TransitionSystem):
             ForAll(W, self.Wscheduled(W) == (W == w)),
         )
 
+# <>
+# | ### Temporal Property
+# | Once the system is defined, we can write temporal properties for it
+# | by extending the `Prop` class.
+# | The temporal property is given by the `prop` method.
+# | Within the temporal property,
+# | we can freely use the temporal operators `G` and `F`.
+class RWLockProp(Prop[RWLockSystem]):
+    def prop(self) -> BoolRef:
+        R = ReaderThread("R")
+        W = WriterThread("W")
+        return Implies(
+            And(
+                ForAll(R, G(F(self.sys.Rscheduled(R)))), # every reader is scheduled infinitely often
+                ForAll(W, G(F(self.sys.Wscheduled(W)))), # every writer is scheduled infinitely often
+            ),
+            And(
+                ForAll(
+                    R,
+                    G(
+                        Implies(
+                            self.sys.pc2(R),
+                            F(self.sys.pc3(R)),
+                        )
+                    ),
+                ), # every reader in pc2 is eventually in pc3
+                ForAll(
+                    W,
+                    G(
+                        Implies(
+                            self.sys.pc5(W),
+                            F(self.sys.pc6(W)),
+                        )
+                    ),
+                ), # every writer in pc5 is eventually in pc6
+            ), # every reader is scheduled infinitely often and every writer is scheduled infinitely often
+               # imply that every reader in pc2 is eventually in pc3 and every writer in pc5 is eventually in pc6
+        )  # </>
