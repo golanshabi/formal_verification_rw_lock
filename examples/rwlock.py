@@ -1,3 +1,5 @@
+from prelude import *  # </>
+
 class ReaderThread(Expr): ...
 
 class WriterThread(Expr): ...
@@ -57,14 +59,15 @@ class RWLockSystem(TransitionSystem):
         return And(
             # guard
             self.pc2(r),
-            writer_in == true,
+            self.writer_in == true,
             # updater
-            self.pc2.unchaged(),
-            self.pc3.unchaged(),
-            self.pc4.unchaged(),
-            self.pc5.unchaged(),
-            self.pc6.unchaged(),
-            self.writer_in.unchaged(),
+            self.pc1.unchanged(),
+            self.pc2.unchanged(),
+            self.pc3.unchanged(),
+            self.pc4.unchanged(),
+            self.pc5.unchanged(),
+            self.pc6.unchanged(),
+            self.writer_in.unchanged(),
             # fairness
             ForAll(R, self.Rscheduled(R) == (R == r)),
             ForAll(W, Not(self.Wscheduled(W))),
@@ -77,7 +80,7 @@ class RWLockSystem(TransitionSystem):
         return And(
             # guard
             self.pc2(r),
-            writer_in == false,
+            self.writer_in == false,
             # updater
             self.pc1.unchanged(),
             self.pc2.update({(r,): false}),
@@ -210,3 +213,65 @@ class RWLockProp(Prop[RWLockSystem]):
             ), # every reader is scheduled infinitely often and every writer is scheduled infinitely often
                # imply that every reader in pc2 is eventually in pc3 and every writer in pc5 is eventually in pc6
         )  # </>
+
+class RWReadLockProof(Proof[RWLockSystem], prop=RWLockProp):
+    @temporal_witness
+    def skolem_reader(self, R: ReaderThread) -> BoolRef:
+        return Not(
+            G(
+                Implies(
+                    self.sys.pc2(R),
+                    F(self.sys.pc3(R)),
+                )
+            )
+        )
+
+    @temporal_invariant
+    @track
+    def skolem_reader_scheduled_infinitely_often(self) -> BoolRef:
+        return G(F(self.sys.Rscheduled(self.skolem_reader)))
+
+
+    @system_invariant
+    def pc_at_least_one_reader(self, R: ReaderThread) -> BoolRef:
+        return Or(self.sys.pc1(R), self.sys.pc2(R), self.sys.pc3(R))
+
+    @system_invariant
+    def pc_at_least_one_writer(self, W: WriterThread) -> BoolRef:
+        return Or(self.sys.pc4(W), self.sys.pc5(W), self.sys.pc6(W))
+
+
+    @system_invariant
+    def pc_at_most_one_reader(self, R: ReaderThread) -> BoolRef:
+        return And(
+            Or(Not(self.sys.pc1(R)), Not(self.sys.pc2(R))),
+            Or(Not(self.sys.pc1(R)), Not(self.sys.pc3(R))),
+            Or(Not(self.sys.pc2(R)), Not(self.sys.pc3(R))),
+        )
+
+    @system_invariant
+    def pc_at_most_one_writer(self, W: WriterThread) -> BoolRef:
+        return And(
+            Or(Not(self.sys.pc4(W)), Not(self.sys.pc5(W))),
+            Or(Not(self.sys.pc4(W)), Not(self.sys.pc6(W))),
+            Or(Not(self.sys.pc5(W)), Not(self.sys.pc6(W))),
+        )
+
+    def starved_reader(self) -> BoolRef:
+        return And(
+            self.sys.pc2(self.skolem_reader),
+            G(Not(self.sys.pc3(self.skolem_reader))),
+        )  # </>
+
+    def rk1(self) -> Rank:
+        return self.timer_rank(
+            self.starved_reader(),
+            None,
+            None,
+        )  # </>
+
+
+    def rank(self) -> Rank:
+        return LexRank(self.rk1())  # </>
+
+RWReadLockProof().check()  # </>

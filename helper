@@ -1,0 +1,5 @@
+temporal_witness - The property which each thread SHOULD fulfill, meaning if any threads don't fulfill it, we're in trouble.
+track - track a specific thread (skolem)
+system_invariant - properties which we expect that will hold, for example - each thread will be in either pc1,pc2 or pc3, conversly it can also be that each thread is in at most one.
+invariant - Properties based on our specific system, for example in the ticket algorithm it could be service_before_next where we check that the currently serviced ticket is less than the next one.
+
